@@ -1,0 +1,6 @@
+@ML_KEM_HostAddress = http://localhost:5002
+
+GET {{ML_KEM_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
