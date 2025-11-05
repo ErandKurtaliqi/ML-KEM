@@ -25,15 +25,6 @@ namespace ML_KEM.Controllers
         }
 
         [HttpPost("encrypt")]
-        public IActionResult Encrypt([FromBody] EncryptRequestModel model)
-            => Ok(_svc.Encrypt(model));
-
-        [HttpPost("decrypt")]
-        public IActionResult Decrypt([FromBody] DecryptRequestModel model)
-            => Ok(_svc.Decrypt(model));
-
-        // Helper për testim shpejt: pranon tekst dhe pubkey, kthen payload të gatshëm
-        [HttpPost("encrypt-text")]
         public IActionResult EncryptText([FromBody] EncryptTextRequest req)
         {
             var enc = _svc.Encrypt(new EncryptRequestModel
@@ -43,5 +34,9 @@ namespace ML_KEM.Controllers
             });
             return Ok(enc);
         }
+
+        [HttpPost("decrypt")]
+        public IActionResult Decrypt([FromBody] DecryptRequestModel model)
+            => Ok(_svc.Decrypt(model));
     }
 }
