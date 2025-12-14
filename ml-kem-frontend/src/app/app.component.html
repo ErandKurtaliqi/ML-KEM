@@ -1,0 +1,673 @@
+<!-- Header -->
+<header class="header">
+  <div class="container">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" stroke="url(#gradient1)" stroke-width="3"/>
+            <path d="M50 20L70 35V65L50 80L30 65V35L50 20Z" stroke="url(#gradient1)" stroke-width="2" fill="none"/>
+            <circle cx="50" cy="50" r="15" fill="url(#gradient1)"/>
+            <path d="M50 35L60 42V58L50 65L40 58V42L50 35Z" stroke="#0a0e17" stroke-width="1.5" fill="none"/>
+            <defs>
+              <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00fff2"/>
+                <stop offset="100%" stop-color="#ff00ff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>ML-KEM</h1>
+          <span class="subtitle">Post-Quantum Cryptography</span>
+        </div>
+      </div>
+      
+      <div class="header-status">
+        <span class="status-dot online"></span>
+        <span class="status-text">NIST FIPS 203 Compliant</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Notification Messages -->
+<div class="notifications">
+  @if (errorMessage) {
+    <div class="notification error animate-slide-in">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+      <span>{{ errorMessage }}</span>
+    </div>
+  }
+  @if (successMessage) {
+    <div class="notification success animate-slide-in">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <span>{{ successMessage }}</span>
+    </div>
+  }
+</div>
+
+<!-- Main Content -->
+<main class="main">
+  <div class="container">
+    <!-- Navigation Tabs -->
+    <nav class="tabs">
+      <button class="tab" [class.active]="activeTab === 'keys'" (click)="setTab('keys')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </svg>
+        <span>Çelësat</span>
+      </button>
+      <button class="tab" [class.active]="activeTab === 'encrypt'" (click)="setTab('encrypt')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span>Enkripto</span>
+      </button>
+      <button class="tab" [class.active]="activeTab === 'decrypt'" (click)="setTab('decrypt')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+        </svg>
+        <span>Dekripto</span>
+      </button>
+      <button class="tab" [class.active]="activeTab === 'info'" (click)="setTab('info')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <span>Info</span>
+      </button>
+    </nav>
+
+    <!-- Keys Tab -->
+    @if (activeTab === 'keys') {
+      <section class="tab-content animate-fade-in">
+        <div class="section-header">
+          <h2>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+            </svg>
+            Gjenerimi i Çelësave
+          </h2>
+          <p>Gjenero çiftin e çelësave publik/privat për komunikim të sigurt post-kuantik</p>
+        </div>
+
+        <div class="key-generation-panel">
+          <div class="level-selector">
+            <label>Niveli i Sigurisë</label>
+            <div class="level-cards">
+              @for (level of levels; track level.value) {
+                <div 
+                  class="level-card" 
+                  [class.selected]="selectedLevel === level.value"
+                  (click)="selectedLevel = level.value"
+                >
+                  <div class="level-header">
+                    <span class="level-name">{{ level.label }}</span>
+                    <span class="level-bits badge badge-primary">{{ level.bits }}</span>
+                  </div>
+                  <div class="level-indicator" [style.background]="getLevelColor(level.value)"></div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <button 
+            class="btn btn-primary generate-btn" 
+            (click)="generateKeyPair()"
+            [disabled]="isGeneratingKeys"
+          >
+            @if (isGeneratingKeys) {
+              <span class="spinner"></span>
+              <span>Duke gjeneruar...</span>
+            } @else {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              <span>Gjenero Çelësat</span>
+            }
+          </button>
+        </div>
+
+        @if (generatedKeyPair) {
+          <div class="generated-keys animate-fade-in">
+            <div class="key-info-header">
+              <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                Çelësat u gjeneruan me sukses
+              </h3>
+              <span class="badge badge-success">{{ generatedKeyPair.algorithm }}</span>
+            </div>
+
+            <div class="keys-grid">
+              <!-- Public Key -->
+              <div class="key-card public">
+                <div class="key-card-header">
+                  <span class="key-label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M12 16v-4"/>
+                      <path d="M12 8h.01"/>
+                    </svg>
+                    Çelësi Publik
+                  </span>
+                  <span class="key-size">{{ formatBytes(generatedKeyPair.publicKeySize) }}</span>
+                </div>
+                <div class="code-block">{{ generatedKeyPair.publicKey }}</div>
+                <button 
+                  class="btn btn-outline copy-btn" 
+                  (click)="copyToClipboard(generatedKeyPair.publicKey, 'publicKey')"
+                >
+                  @if (copyFeedback['publicKey']) {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Kopjuar!
+                  } @else {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Kopjo
+                  }
+                </button>
+              </div>
+
+              <!-- Private Key -->
+              <div class="key-card private">
+                <div class="key-card-header">
+                  <span class="key-label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Çelësi Privat
+                  </span>
+                  <span class="key-size">{{ formatBytes(generatedKeyPair.privateKeySize) }}</span>
+                </div>
+                <div class="code-block private-key">{{ generatedKeyPair.privateKey }}</div>
+                <div class="warning-badge">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  Mos e ndani kurrë çelësin privat!
+                </div>
+                <button 
+                  class="btn btn-outline copy-btn" 
+                  (click)="copyToClipboard(generatedKeyPair.privateKey, 'privateKey')"
+                >
+                  @if (copyFeedback['privateKey']) {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Kopjuar!
+                  } @else {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Kopjo
+                  }
+                </button>
+              </div>
+            </div>
+
+            <button class="btn btn-secondary use-keys-btn" (click)="useGeneratedKeys()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+              Përdor për Enkriptim
+            </button>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Encrypt Tab -->
+    @if (activeTab === 'encrypt') {
+      <section class="tab-content animate-fade-in">
+        <div class="section-header">
+          <h2>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Enkriptimi i Mesazhit
+          </h2>
+          <p>Enkripto mesazhin duke përdorur ML-KEM dhe AES-GCM për sigurim maksimal</p>
+        </div>
+
+        <div class="encrypt-panel">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="encryptLevel">Niveli ML-KEM</label>
+              <select id="encryptLevel" class="form-select" [(ngModel)]="encryptionLevel">
+                @for (level of levels; track level.value) {
+                  <option [value]="level.value">{{ level.label }} ({{ level.bits }})</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="recipientKey">Çelësi Publik i Marrësit</label>
+            <textarea 
+              id="recipientKey" 
+              class="form-control"
+              [(ngModel)]="recipientPublicKey"
+              placeholder="Vendos çelësin publik Base64 të marrësit..."
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="plaintext">Mesazhi</label>
+            <textarea 
+              id="plaintext" 
+              class="form-control"
+              [(ngModel)]="plaintext"
+              placeholder="Shkruani mesazhin që dëshironi të enkriptoni..."
+              rows="5"
+            ></textarea>
+            <div class="char-count">{{ plaintext.length }} karaktere</div>
+          </div>
+
+          <div class="button-group">
+            <button 
+              class="btn btn-primary" 
+              (click)="encryptMessage()"
+              [disabled]="isEncrypting || !plaintext || !recipientPublicKey"
+            >
+              @if (isEncrypting) {
+                <span class="spinner"></span>
+                <span>Duke enkriptuar...</span>
+              } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span>Enkripto</span>
+              }
+            </button>
+            <button class="btn btn-outline" (click)="clearEncryption()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              <span>Pastro</span>
+            </button>
+          </div>
+        </div>
+
+        @if (encryptedResult) {
+          <div class="encrypted-result animate-fade-in">
+            <div class="result-header">
+              <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Mesazhi u Enkriptua
+              </h3>
+              <span class="badge badge-success">{{ encryptedResult.algorithm }}</span>
+            </div>
+
+            <div class="result-grid">
+              <div class="result-item">
+                <div class="result-label">
+                  <span>KEM Ciphertext</span>
+                  <button class="copy-mini" (click)="copyToClipboard(encryptedResult.kemCiphertextBase64, 'kemCt')">
+                    @if (copyFeedback['kemCt']) {
+                      ✓
+                    } @else {
+                      📋
+                    }
+                  </button>
+                </div>
+                <div class="code-block">{{ encryptedResult.kemCiphertextBase64 }}</div>
+              </div>
+
+              <div class="result-item">
+                <div class="result-label">
+                  <span>Nonce (IV)</span>
+                  <button class="copy-mini" (click)="copyToClipboard(encryptedResult.nonceBase64, 'nonce')">
+                    @if (copyFeedback['nonce']) {
+                      ✓
+                    } @else {
+                      📋
+                    }
+                  </button>
+                </div>
+                <div class="code-block">{{ encryptedResult.nonceBase64 }}</div>
+              </div>
+
+              <div class="result-item">
+                <div class="result-label">
+                  <span>Ciphertext (AES-GCM)</span>
+                  <button class="copy-mini" (click)="copyToClipboard(encryptedResult.ciphertextBase64, 'ct')">
+                    @if (copyFeedback['ct']) {
+                      ✓
+                    } @else {
+                      📋
+                    }
+                  </button>
+                </div>
+                <div class="code-block">{{ encryptedResult.ciphertextBase64 }}</div>
+              </div>
+
+              <div class="result-item">
+                <div class="result-label">
+                  <span>Authentication Tag</span>
+                  <button class="copy-mini" (click)="copyToClipboard(encryptedResult.tagBase64, 'tag')">
+                    @if (copyFeedback['tag']) {
+                      ✓
+                    } @else {
+                      📋
+                    }
+                  </button>
+                </div>
+                <div class="code-block">{{ encryptedResult.tagBase64 }}</div>
+              </div>
+            </div>
+
+            <div class="result-meta">
+              <span>Madhësia e origjinalit: {{ encryptedResult.plaintextLength }} bytes</span>
+            </div>
+
+            @if (generatedKeyPair) {
+              <button class="btn btn-secondary" (click)="fillDecryptionFromResult()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                </svg>
+                Dekripto këtë mesazh
+              </button>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Decrypt Tab -->
+    @if (activeTab === 'decrypt') {
+      <section class="tab-content animate-fade-in">
+        <div class="section-header">
+          <h2>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+            </svg>
+            Dekriptimi i Mesazhit
+          </h2>
+          <p>Dekripto mesazhin duke përdorur çelësin tënd privat</p>
+        </div>
+
+        <div class="decrypt-panel">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="decryptLevel">Niveli ML-KEM</label>
+              <select id="decryptLevel" class="form-select" [(ngModel)]="decryptionLevel">
+                @for (level of levels; track level.value) {
+                  <option [value]="level.value">{{ level.label }} ({{ level.bits }})</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="privateKey">Çelësi Privat</label>
+            <textarea 
+              id="privateKey" 
+              class="form-control"
+              [(ngModel)]="privateKeyForDecryption"
+              placeholder="Vendos çelësin tënd privat Base64..."
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="decrypt-inputs-grid">
+            <div class="form-group">
+              <label for="kemCt">KEM Ciphertext</label>
+              <textarea 
+                id="kemCt" 
+                class="form-control"
+                [(ngModel)]="kemCiphertext"
+                placeholder="KEM ciphertext Base64..."
+                rows="2"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="nonceInput">Nonce (IV)</label>
+              <input 
+                type="text" 
+                id="nonceInput" 
+                class="form-control"
+                [(ngModel)]="nonce"
+                placeholder="Nonce Base64..."
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="ctInput">Ciphertext</label>
+              <textarea 
+                id="ctInput" 
+                class="form-control"
+                [(ngModel)]="ciphertext"
+                placeholder="Ciphertext Base64..."
+                rows="2"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="tagInput">Authentication Tag</label>
+              <input 
+                type="text" 
+                id="tagInput" 
+                class="form-control"
+                [(ngModel)]="tag"
+                placeholder="Tag Base64..."
+              >
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button 
+              class="btn btn-success" 
+              (click)="decryptMessage()"
+              [disabled]="isDecrypting || !privateKeyForDecryption || !kemCiphertext || !nonce || !ciphertext || !tag"
+            >
+              @if (isDecrypting) {
+                <span class="spinner"></span>
+                <span>Duke dekriptuar...</span>
+              } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                </svg>
+                <span>Dekripto</span>
+              }
+            </button>
+            <button class="btn btn-outline" (click)="clearDecryption()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              <span>Pastro</span>
+            </button>
+          </div>
+        </div>
+
+        @if (decryptedText) {
+          <div class="decrypted-result animate-fade-in">
+            <div class="result-header success">
+              <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                Mesazhi i Dekriptuar
+              </h3>
+            </div>
+            <div class="decrypted-text">
+              {{ decryptedText }}
+            </div>
+            <button 
+              class="btn btn-outline copy-btn" 
+              (click)="copyToClipboard(decryptedText, 'decrypted')"
+            >
+              @if (copyFeedback['decrypted']) {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Kopjuar!
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Kopjo Tekstin
+              }
+            </button>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Info Tab -->
+    @if (activeTab === 'info') {
+      <section class="tab-content animate-fade-in">
+        <div class="section-header">
+          <h2>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            Informacione rreth ML-KEM
+          </h2>
+          <p>Module-Lattice-Based Key-Encapsulation Mechanism (CRYSTALS-Kyber)</p>
+        </div>
+
+        <div class="info-content">
+          <div class="info-intro card">
+            <h3>Çfarë është ML-KEM?</h3>
+            <p>
+              <strong>ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism)</strong>, i njohur më parë si CRYSTALS-Kyber, 
+              është algoritmi i parë post-kuantik i standardizuar nga NIST për shkëmbimin e çelësave. 
+              Është projektuar për të qenë i sigurt kundër sulmeve nga kompjuterët kuantikë.
+            </p>
+            <div class="info-badges">
+              <span class="badge badge-primary">NIST FIPS 203</span>
+              <span class="badge badge-success">Post-Quantum Secure</span>
+              <span class="badge badge-warning">Lattice-Based</span>
+            </div>
+          </div>
+
+          <div class="algorithms-grid">
+            @for (algo of algorithms; track algo.name) {
+              <div class="algorithm-card card">
+                <div class="algo-header">
+                  <h4>{{ algo.name }}</h4>
+                  <span class="security-level badge badge-primary">{{ algo.securityLevel }}</span>
+                </div>
+                <p class="algo-description">{{ algo.description }}</p>
+                <div class="algo-specs">
+                  <div class="spec">
+                    <span class="spec-label">Çelësi Publik</span>
+                    <span class="spec-value">{{ algo.publicKeySize }} bytes</span>
+                  </div>
+                  <div class="spec">
+                    <span class="spec-label">Çelësi Privat</span>
+                    <span class="spec-value">{{ algo.privateKeySize }} bytes</span>
+                  </div>
+                  <div class="spec">
+                    <span class="spec-label">Ciphertext</span>
+                    <span class="spec-value">{{ algo.ciphertextSize }} bytes</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="how-it-works card">
+            <h3>Si Funksionon?</h3>
+            <div class="steps">
+              <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                  <h4>Gjenerimi i Çelësave</h4>
+                  <p>Marrësi gjeneron çiftin publik/privat dhe e ndan çelësin publik</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                  <h4>Enkapsulimi (KEM)</h4>
+                  <p>Dërguesi përdor çelësin publik për të gjeneruar një sekret të përbashkët dhe KEM ciphertext</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                  <h4>Enkriptimi (AES-GCM)</h4>
+                  <p>Mesazhi enkriptohet me AES-GCM duke përdorur sekretin e përbashkët</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                  <h4>Dekapsulimi & Dekriptimi</h4>
+                  <p>Marrësi rikupton sekretin me çelësin privat dhe dekripton mesazhin</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="security-note card">
+            <div class="note-header">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <h3>Pse Post-Quantum?</h3>
+            </div>
+            <p>
+              Algoritmet tradicionale si RSA dhe ECC janë të cenueshme ndaj <strong>Algoritmit të Shor</strong>, 
+              i cili mund të thyejë enkriptimin asimetrik me kompjuterë kuantikë. ML-KEM bazohet në problemet 
+              e vështira të lattice-ve (Module Learning with Errors - MLWE), të cilat mbeten të sigurta edhe 
+              kundër kompjuterëve kuantikë.
+            </p>
+          </div>
+        </div>
+      </section>
+    }
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <span>© 2024 ML-KEM Post-Quantum Cryptography</span>
+      <span class="separator">•</span>
+      <span>Master Thesis - Information Security</span>
+      <span class="separator">•</span>
+      <span>Erand Kurtaliqi</span>
+    </div>
+  </div>
+</footer>

@@ -1,22 +1,36 @@
 using ML_KEM.Interfaces;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// CORS configuration për Angular frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddOpenApi();
-
 builder.Services.AddSingleton<IPostQuantumCryptoService, PostQuantumCryptoService>();
 
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "Swagger",
+        Title = "ML-KEM Post-Quantum Cryptography API",
         Version = "v1",
-        Description = "This is a demo API using Swagger in .NET 9"
+        Description = "API për enkriptim dhe dekriptim post-kuantik duke përdorur ML-KEM (CRYSTALS-Kyber)"
     });
 });
 
@@ -31,6 +45,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enable CORS - duhet të jetë para UseAuthorization
+app.UseCors("AllowAngular");
 
 app.UseAuthorization();
 
