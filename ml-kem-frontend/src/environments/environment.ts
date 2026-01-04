@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5002/api/PostQuantumCrypto'
+  apiUrl: 'https://localhost:7123/api/PostQuantumCrypto'
 };
 

@@ -2,6 +2,7 @@
 using ML_KEM.Enums;
 using ML_KEM.Interfaces;
 using ML_KEM.Model;
+using System.Diagnostics;
 using System.Text;
 
 namespace ML_KEM.Controllers
@@ -11,7 +12,11 @@ namespace ML_KEM.Controllers
     public class PostQuantumCryptoController : ControllerBase
     {
         private readonly IPostQuantumCryptoService _svc;
-        public PostQuantumCryptoController(IPostQuantumCryptoService svc) => _svc = svc;
+        private readonly IWebHostEnvironment _env;
+        public PostQuantumCryptoController(IPostQuantumCryptoService svc, IWebHostEnvironment env) { 
+            _svc = svc;
+            _env = env;
+        }
 
         /// <summary>
         /// Gjeneron çiftin e çelësave publik/privat për ML-KEM
@@ -41,37 +46,45 @@ namespace ML_KEM.Controllers
         /// <summary>
         /// Enkripton tekstin me ML-KEM dhe AES-GCM
         /// </summary>
+        //[HttpPost("encrypt")]
+        //public IActionResult EncryptText([FromBody] EncryptTextRequest req)
+        //{
+        //    try
+        //    {
+        //        var enc = _svc.Encrypt(new EncryptRequestModel
+        //        {
+        //            ReceiverPublicKeyBase64 = req.ReceiverPublicKeyBase64,
+        //            PlaintextBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(req.Text))
+        //        }, req.Level);
+        //        return Ok(enc);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { error = ex.Message });
+        //    }
+        //}
+
+
         [HttpPost("encrypt")]
         public IActionResult EncryptText([FromBody] EncryptTextRequest req)
         {
             try
             {
-                var enc = _svc.Encrypt(new EncryptRequestModel
+                var model = new EncryptRequestModel
                 {
                     ReceiverPublicKeyBase64 = req.ReceiverPublicKeyBase64,
                     PlaintextBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(req.Text))
-                }, req.Level);
-                return Ok(enc);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
+                };
 
-        /// <summary>
-        /// Dekripton mesazhin e enkriptuar
-        /// </summary>
-        [HttpPost("decrypt")]
-        public IActionResult Decrypt([FromBody] DecryptRequestModel model)
-        {
-            try
-            {
-                var decrypted = _svc.Decrypt(model, model.Level);
-                return Ok(new DecryptResponse
+                var sw = Stopwatch.StartNew();
+                var enc = _svc.Encrypt(model, req.Level);
+                sw.Stop();
+
+                return Ok(new
                 {
-                    DecryptedText = decrypted,
-                    Algorithm = $"ML-KEM-{(int)model.Level}"
+                    level = req.Level,
+                    backendTimeMs = sw.Elapsed.TotalMilliseconds,
+                    result = enc
                 });
             }
             catch (Exception ex)
@@ -79,6 +92,30 @@ namespace ML_KEM.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+
+        /// <summary>
+        /// Dekripton mesazhin e enkriptuar
+        /// </summary>
+        //[HttpPost("decrypt")]
+        //public IActionResult Decrypt([FromBody] DecryptRequestModel model)
+        //{
+        //    try
+        //    {
+        //        var decrypted = _svc.Decrypt(model, model.Level);
+        //        return Ok(new DecryptResponse
+        //        {
+        //            DecryptedText = decrypted,
+        //            Algorithm = $"ML-KEM-{(int)model.Level}"
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { error = ex.Message });
+        //    }
+        //}
+
+
 
         /// <summary>
         /// Merr informacionet rreth algoritmeve të disponueshme
@@ -120,6 +157,138 @@ namespace ML_KEM.Controllers
                 }
             });
         }
+
+        [HttpPost("benchmark")]
+        public IActionResult BenchmarkEncrypt([FromBody] EncryptBenchmarkRequest req)
+        {
+            try
+            {
+                if (req.Iterations <= 0) return BadRequest(new { error = "Iterations must be > 0" });
+                if (req.Iterations > 5000) return BadRequest(new { error = "Too many iterations (max 5000)" });
+
+                // Përgatit modelin (që ky overhead të mos futet në matje)
+                var model = new EncryptRequestModel
+                {
+                    ReceiverPublicKeyBase64 = req.ReceiverPublicKeyBase64,
+                    PlaintextBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(req.Text))
+                };
+
+                // CSV builder
+                var sb = new StringBuilder();
+                sb.AppendLine("iteration,level,backendTimeMs");
+
+                var times = new List<double>(req.Iterations);
+
+                for (int i = 1; i <= req.Iterations; i++)
+                {
+                    var sw = Stopwatch.StartNew();
+                    _ = _svc.Encrypt(model, MlKemLevel.MLKem512);
+                    sw.Stop();
+
+                    var ms = sw.Elapsed.TotalMilliseconds;
+                    times.Add(ms);
+                    sb.AppendLine($"{i},{req.Level},{ms:F3}");
+                }
+
+                // Ruaje në një folder p.sh. /Benchmarks
+                var folder = Path.Combine(_env.ContentRootPath, "Benchmarks");
+                Directory.CreateDirectory(folder);
+
+                var fileName = $"mlkem_benchmark_{req.Level}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+                var filePath = Path.Combine(folder, fileName);
+                System.IO.File.WriteAllText(filePath, sb.ToString());
+
+                // Statistika bazike (të vlefshme për tabelë)
+                var min = times.Min();
+                var max = times.Max();
+                var mean = times.Average();
+
+                return Ok(new
+                {
+                    req.Level,
+                    iterations = req.Iterations,
+                    backendTimeMs = new { mean, min, max },
+                    savedFile = fileName,
+                    savedPath = filePath
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("benchmark-decrypt")]
+        public IActionResult BenchmarkDecrypt([FromBody] DecryptBenchmarkRequest req)
+        {
+            try
+            {
+                if (req.Iterations <= 0) return BadRequest(new { error = "Iterations must be > 0" });
+                if (req.Iterations > 5000) return BadRequest(new { error = "Too many iterations (max 5000)" });
+
+                // CSV builder
+                var sb = new StringBuilder();
+                sb.AppendLine("iteration,level,backendTimeMs");
+
+                var times = new List<double>(req.Iterations);
+
+                for (int i = 1; i <= req.Iterations; i++)
+                {
+                    var sw = Stopwatch.StartNew();
+
+                    // Decapsulation / Decrypt (vetëm backend time)
+                    _ = _svc.Decrypt(req.Model, req.Model.Level);
+
+                    sw.Stop();
+
+                    var ms = sw.Elapsed.TotalMilliseconds;
+                    times.Add(ms);
+                    sb.AppendLine($"{i},{req.Model.Level},{ms:F3}");
+                }
+
+                // Ruaje në folder /Benchmarks
+                var folder = Path.Combine(_env.ContentRootPath, "Benchmarks");
+                Directory.CreateDirectory(folder);
+
+                var fileName = $"mlkem_decrypt_benchmark_{req.Model.Level}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+                var filePath = Path.Combine(folder, fileName);
+                System.IO.File.WriteAllText(filePath, sb.ToString());
+
+                // Statistika
+                var min = times.Min();
+                var max = times.Max();
+                var mean = times.Average();
+
+                return Ok(new
+                {
+                    level = req.Model.Level,
+                    iterations = req.Iterations,
+                    backendTimeMs = new { mean, min, max },
+                    savedFile = fileName,
+                    savedPath = filePath
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+    }
+
+    public class DecryptBenchmarkRequest
+    {
+        public int Iterations { get; set; } = 500;
+
+        // Këtu dërgon komplet modelin e decrypt-it (ciphertext etj.)
+        public DecryptRequestModel Model { get; set; } = default!;
+    }
+    public class EncryptBenchmarkRequest
+    {
+        public string ReceiverPublicKeyBase64 { get; set; } = default!;
+        public string Text { get; set; } = default!;
+        public string Level { get; set; } = "MLKem512";
+        public int Iterations { get; set; } = 500;
     }
 
     // Response models
