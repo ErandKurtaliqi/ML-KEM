@@ -1,4 +1,4 @@
-﻿using ML_KEM.Enums
+﻿using ML_KEM.Enums;
 using ML_KEM.Interfaces;
 using ML_KEM.Model;
 using Org.BouncyCastle.Crypto.Generators;
